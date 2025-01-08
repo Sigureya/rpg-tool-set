@@ -1,6 +1,4 @@
-import fs from "node:fs/promises"
-export class Folder{
-    childFolders(){
-        
-    }
+import fs from "node:fs/promises";
+export class Folder {
+  childFolders() {}
 }
