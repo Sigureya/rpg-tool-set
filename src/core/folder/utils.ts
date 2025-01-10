@@ -19,3 +19,12 @@ export const collectFiles = async (
     (dirent) => dirent.isFIFO() && areExtentionsMatch(dirent, extentions)
   );
 };
+export const extractFolders = async (
+  basePath: string,
+  targets: ReadonlySet<string>
+) => {
+  const list = await readdir(basePath, { withFileTypes: true });
+  return list.filter(
+    (dirent) => dirent.isDirectory() && targets.has(dirent.name)
+  );
+};
