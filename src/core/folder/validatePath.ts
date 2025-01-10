@@ -1,4 +1,4 @@
-import type Lib from "node:path";
+import type { PathLib } from "./types";
 
 const forbiddenNames: ReadonlySet<string> = new Set([
   "CON",
@@ -7,7 +7,6 @@ const forbiddenNames: ReadonlySet<string> = new Set([
   "NUL",
   ".htaccess",
 ] as const);
-export type PathLib = Pick<typeof Lib, "basename">;
 
 export const validatePath = (
   pathLib: PathLib,
