@@ -22,7 +22,6 @@ export class Folder<T> {
     this._pathLib = libs.path;
     this._fileSystem = libs.fileSystem;
     this._basePath = libs.path.resolve(basePath);
-    // ベースパスを絶対パスに変換
     this._setting = { ...setting };
   }
 
