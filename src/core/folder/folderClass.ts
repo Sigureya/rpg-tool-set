@@ -1,28 +1,23 @@
-import type fs from "node:fs/promises";
-import type path from "node:path";
 import type { Dirent } from "node:fs";
 import { extractFolders } from "./utils";
-import type { FileDataType, FolderTraits } from "./types";
+import type { FileDataType, FolderTraits, FsLib, Libs, PathLib } from "./types";
 import { validatePath } from "./validatePath";
 
-export class Folder<T> {
+export type FileFolderFromTraits<T extends FolderTraits<unknown>> = FileFolder<
+  T extends FolderTraits<infer U> ? U : never
+>;
+
+export class FileFolder<T> {
   readonly _basePath: string;
   readonly _setting: FolderTraits<T>;
-  private _fileSystem: typeof fs;
-  private _pathLib: path.PlatformPath;
+  private _fileSystem: FsLib;
+  private _pathLib: PathLib;
 
-  constructor(
-    libs: {
-      fileSystem: typeof fs;
-      path: typeof path;
-    },
-    basePath: string,
-    setting: FolderTraits<T>
-  ) {
+  constructor(libs: Libs, basePath: string, setting: FolderTraits<T>) {
     this._pathLib = libs.path;
     this._fileSystem = libs.fileSystem;
     this._basePath = libs.path.resolve(basePath);
-    this._setting = { ...setting };
+    this._setting = setting;
   }
 
   // 拡張子取得
