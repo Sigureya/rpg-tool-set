@@ -1,21 +1,28 @@
 import type fs from "node:fs/promises";
+import type path from "node:path";
 import type { Dirent } from "node:fs";
-import { resolve } from "node:path";
 import { extractFolders } from "./utils";
 import type { FileDataType, FolderTraits } from "./types";
+import { validatePath } from "./validatePath";
 
 export class Folder<T> {
   readonly _basePath: string;
   readonly _setting: FolderTraits<T>;
   private _fileSystem: typeof fs;
+  private _pathLib: path.PlatformPath;
 
   constructor(
-    fileSystem: typeof fs,
+    libs: {
+      fileSystem: typeof fs;
+      path: typeof path;
+    },
     basePath: string,
     setting: FolderTraits<T>
   ) {
-    this._fileSystem = fileSystem;
-    this._basePath = resolve(basePath); // ベースパスを絶対パスに変換
+    this._pathLib = libs.path;
+    this._fileSystem = libs.fileSystem;
+    this._basePath = libs.path.resolve(basePath);
+    // ベースパスを絶対パスに変換
     this._setting = { ...setting };
   }
 
@@ -29,10 +36,9 @@ export class Folder<T> {
   }
   // パス解決と検証
   resolvePath(name: string = ""): string {
-    const resolvedPath = resolve(this._basePath, name);
-    if (!resolvedPath.startsWith(this._basePath)) {
-      throw new Error(`Invalid child path: ${name}`);
-    }
+    const resolvedPath = this._pathLib.resolve(this._basePath, name);
+    // パスの検証。問題があるなら例外が発生する
+    validatePath(this._pathLib, resolvedPath, this._basePath);
     return resolvedPath;
   }
 
