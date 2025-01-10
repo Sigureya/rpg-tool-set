@@ -1,55 +1,124 @@
-import fs from "node:fs/promises";
-
-import type { FolderTraits } from "./types/trait";
-import { resolvePath } from "./path";
+import type fs from "node:fs/promises";
 import type { Dirent } from "node:fs";
+import { resolve } from "node:path";
+import { extractFolders } from "./utils";
+import type { FileDataType, FolderTraits } from "./types";
 
-export class Folder {
+export class Folder<T> {
   readonly _basePath: string;
-  readonly _setting: FolderTraits<unknown>;
-  constructor(basePath: string, setting: FolderTraits<unknown>) {
-    this._basePath = basePath;
+  readonly _setting: FolderTraits<T>;
+  private _fileSystem: typeof fs;
+
+  constructor(
+    fileSystem: typeof fs,
+    basePath: string,
+    setting: FolderTraits<T>
+  ) {
+    this._fileSystem = fileSystem;
+    this._basePath = resolve(basePath); // ベースパスを絶対パスに変換
     this._setting = { ...setting };
   }
+
+  // 拡張子取得
   get ext() {
     return this._setting.ext;
   }
-  mkDir(): Promise<void> {
-    return fs.mkdir(this._basePath);
+  // ベースパス取得
+  get basePath() {
+    return this._basePath;
   }
-  resolvePath(name: string) {
-    return resolvePath(this._basePath, name);
+  // パス解決と検証
+  resolvePath(name: string = ""): string {
+    const resolvedPath = resolve(this._basePath, name);
+    if (!resolvedPath.startsWith(this._basePath)) {
+      throw new Error(`Invalid child path: ${name}`);
+    }
+    return resolvedPath;
   }
+
+  // ファイル名を元にフルパス解決
+  resolveFilenamePath(filename: string): string {
+    return this.resolvePath(`${filename}${this.ext}`);
+  }
+
+  // ディレクトリ作成
+  async mkDir(): Promise<void> {
+    try {
+      await this._fileSystem.mkdir(this._basePath, { recursive: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+    }
+  }
+
+  // ファイル読み込み
+  async read(filename: string): Promise<T> {
+    const path = this.resolveFilenamePath(filename);
+    const buffer = await this._fileSystem.readFile(path);
+    return this._setting.readFile(buffer);
+  }
+
+  // ファイル書き込み
+  async write(filename: string, data: T): Promise<void> {
+    const path = this.resolveFilenamePath(filename);
+    const fileData: FileDataType = this._setting.toFileData(data);
+    await this._fileSystem.writeFile(path, fileData);
+  }
+
+  // デフォルトデータを元にファイル作成
+  async makeFile(filename: string): Promise<void> {
+    const path = this.resolveFilenamePath(filename);
+    const data: FileDataType = this._setting.makeDefault();
+    await this._fileSystem.writeFile(path, data);
+  }
+
+  // ディレクトリ内の内容を取得
   async readDir(childPath: string = ""): Promise<Dirent[]> {
-    const path = resolvePath(this._basePath, childPath);
-    return fs.readdir(path, {
-      withFileTypes: true,
-      recursive: true,
-    });
+    const path = this.resolvePath(childPath);
+    try {
+      return await this._fileSystem.readdir(path, { withFileTypes: true });
+    } catch (error) {
+      throw new Error(`Failed to read directory: ${path}`);
+    }
   }
-  async files(childPath: string = ""): Promise<Dirent[]> {
+
+  // 指定された拡張子を持つファイル一覧を取得
+  async getFiles(childPath: string = ""): Promise<Dirent[]> {
     const list = await this.readDir(childPath);
-    // 取得に僅かな手間がかかるので、予め捕まえておく
-    const ext = this.ext;
     return list.filter(
-      (dirent) => dirent.isFile() && dirent.name.endsWith(ext)
+      (dirent) => dirent.isFile() && dirent.name.endsWith(this.ext)
     );
   }
-  async childFolders(childPath: string = ""): Promise<Dirent[]> {
+
+  // 子フォルダ一覧を取得
+  async getChildFolders(childPath: string = ""): Promise<Dirent[]> {
     const list = await this.readDir(childPath);
     return list.filter((dirent) => dirent.isDirectory());
   }
 
-  // 指定したフォルダをまとめて取得する
-  folders(x: string[]) {}
-
-  async folderExsits(name: string = "") {
+  // 指定された名前のフォルダが存在するか確認
+  async folderExists(name: string): Promise<boolean> {
     try {
       const path = this.resolvePath(name);
-      await fs.access(path);
+      await this._fileSystem.access(path);
       return true;
     } catch {
       return false;
     }
+  }
+
+  // 指定されたフォルダを抽出
+  async extractFolders(targets: ReadonlySet<string>): Promise<Dirent[]> {
+    const path = this.resolvePath();
+    return extractFolders(path, targets);
+  }
+
+  // ベースパス直下のフォルダを取得
+  async listBaseFolders(): Promise<Dirent[]> {
+    const list = await this._fileSystem.readdir(this._basePath, {
+      withFileTypes: true,
+    });
+    return list.filter((dirent) => dirent.isDirectory());
   }
 }
