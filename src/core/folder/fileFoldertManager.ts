@@ -7,12 +7,12 @@ type FolderTable<
 > = {
   [Key in keyof FoldersType]: FileFolderFromTraits<FoldersType[Key]>;
 };
+
 export class FileFoldersManager<
-  FoldersType extends Record<PropertyKey, FolderTraits<unknown>>
+  FoldersType extends Record<PropertyKey, FolderTraits<any>>
 > {
   private readonly _folders: FolderTable<FoldersType>;
   private readonly _basePath: string;
-  private readonly _libs: Libs;
 
   constructor(libs: Libs, basePath: string, folderTraits: FoldersType) {
     this._basePath = libs.path.resolve(basePath);
@@ -21,7 +21,6 @@ export class FileFoldersManager<
       libs,
       folderTraits
     ) as FolderTable<FoldersType>;
-    this._libs = libs;
   }
   get base() {
     return this._basePath;
@@ -46,7 +45,7 @@ const createFolders = <
   basePath: string,
   libs: Libs,
   folderTraits: FoldersType
-) => {
+): FolderTable<FoldersType> => {
   return Object.keys(folderTraits).reduce(
     (acc, key: string & keyof FolderTable<FoldersType>) => {
       acc[key] = new FileFolder(
@@ -57,5 +56,5 @@ const createFolders = <
       return acc;
     },
     {} as Record<keyof FoldersType, FileFolder<unknown>>
-  );
+  ) as FolderTable<FoldersType>;
 };
