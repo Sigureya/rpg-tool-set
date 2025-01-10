@@ -18,7 +18,10 @@ export const validatePath = (
   }
 
   const baseName = pathLib.basename(fullPath);
-  if (forbiddenNames.has(baseName)) {
+  if (
+    forbiddenNames.has(baseName) ||
+    forbiddenNames.has(baseName.toUpperCase())
+  ) {
     throw new Error(`forbidden name:${baseName}`);
   }
   if (!fullPath.startsWith(basePath)) {
