@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { xxx } from "./utils2";
+import { createFolderTable } from "./utils2";
 import path from "node:path";
 import { createMockFsLib } from "./mockTypes";
 import { FileFolder } from "./folderClass";
 
-describe("xxx function", () => {
+describe("createFolderTable", () => {
   const folderNames = ["faces", "pictures", "enemies"] as const;
-  let folders: Record<(typeof folderNames)[number], any>;
+  let folders: Record<(typeof folderNames)[number], FileFolder<unknown>>;
 
   beforeEach(() => {
-    folders = xxx(
+    folders = createFolderTable(
       { path, fileSystem: createMockFsLib() },
       "/base/",
       {
@@ -34,12 +34,49 @@ describe("xxx function", () => {
     });
   });
 
-  //   it("should pass correct arguments to FileFolder constructor", () => {
-  //     folderNames.forEach((name) => {
-  //       const folder = folders[name];
-  //       //      expect(folder.libs).toEqual({ path, fileSystem: createMockFsLib() });
-  //       //      expect(folder.basePath).toBe("/base/");
-  //       expect(folder.traits.ext).toBe(".png");
-  //     });
-  //   });
+  it("should pass correct arguments to FileFolder constructor", () => {
+    folderNames.forEach((name) => {
+      const folder = folders[name];
+      expect(folder.ext).toBe(".png");
+    });
+  });
+});
+
+describe("createFolderTable with invalid folder names", () => {
+  const invalidFolderNames = ["..", "/", "\\"] as const;
+
+  invalidFolderNames.forEach((name) => {
+    it(`should throw an error for invalid folder names:${name}`, () => {
+      expect(() => {
+        createFolderTable(
+          { path, fileSystem: createMockFsLib() },
+          "/base/",
+          {
+            ext: ".png",
+            makeDefault: vi.fn(),
+            toFileData: vi.fn(),
+            readFile: vi.fn(),
+          },
+          [name]
+        );
+      }).toThrow();
+    });
+  });
+});
+
+describe("createFolderTable with empty folder names array", () => {
+  it("should handle empty folder names array", () => {
+    const emptyFolders = createFolderTable(
+      { path, fileSystem: createMockFsLib() },
+      "/base/",
+      {
+        ext: ".png",
+        makeDefault: vi.fn(),
+        toFileData: vi.fn(),
+        readFile: vi.fn(),
+      },
+      []
+    );
+    expect(Object.keys(emptyFolders)).toHaveLength(0);
+  });
 });
