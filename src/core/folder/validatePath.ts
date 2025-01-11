@@ -24,6 +24,11 @@ export const validatePath = (
   ) {
     throw new Error(`forbidden name:${baseName}`);
   }
+
+  if (fullPath.includes("..")) {
+    throw new Error(`path contains ..`);
+  }
+
   if (!fullPath.startsWith(basePath)) {
     throw new Error(
       `Invalid path: ${fullPath} is outside the base path ${basePath}`
