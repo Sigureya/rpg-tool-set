@@ -1,40 +1,40 @@
 import { readFile } from "fs/promises";
 import type { FileDataType } from "./filedata";
-import { toData } from "./folderTraitJSON";
 import type { FolderTraits } from "./trait";
 
 export const vv = <T>(list: object[], func: () => T) => {
-  return list.map((item) => ({
+  return list.map<T>((item) => ({
     ...func(),
     ...item,
   }));
 };
 
 interface Def<T> {
-  makeItem: () => T;
+  makeDefaultObject: () => T;
+  defaultArray: () => T[];
 }
 
-class ArrayJSON_XXX<T, ArrayType extends T[] = T[]>
+export class ArrayJSONFolder<T, ArrayType extends Array<T> = Array<T>>
   implements FolderTraits<ArrayType>
 {
   private _def: Def<T>;
   constructor(def: Def<T>) {
     this._def = def;
   }
+  toFileData(data: ArrayType): FileDataType {
+    throw new Error("Method not implemented.");
+  }
 
   get ext() {
     return `.json` as const;
   }
-  makeDefault() {
-    return [];
+  makeDefault(): FileDataType {
+    return this.toFileData([] as unknown as ArrayType);
   }
   async readFile(buffer: Buffer<ArrayBufferLike>): Promise<ArrayType> {
     const s = buffer.toString("utf-8");
     const json = JSON.parse(s);
 
     throw new Error("Method not implemented.");
-  }
-  toFileData(data: ArrayType) {
-    return toData(data);
   }
 }
