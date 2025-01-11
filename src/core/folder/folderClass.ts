@@ -4,7 +4,7 @@ import type { FileDataType, FolderTraits, FsLib, Libs, PathLib } from "./types";
 import { validatePath } from "./validatePath";
 
 export type FileFolderFromTraits<T extends FolderTraits<unknown>> = FileFolder<
-  T extends FolderTraits<infer U> ? U : never
+  Parameters<T["toFileData"]>[0]
 >;
 
 export class FileFolder<T> {
@@ -56,7 +56,7 @@ export class FileFolder<T> {
   async read(filename: string): Promise<T> {
     const path = this.resolveFilenamePath(filename);
     const buffer = await this._fileSystem.readFile(path);
-    return this._setting.readFile(buffer);
+    return this._setting.readFile(buffer, path);
   }
 
   // ファイル書き込み
