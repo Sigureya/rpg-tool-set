@@ -1,65 +1,60 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { FileFoldersManager } from "./fileFoldertManager";
+import type { FileFolderFromTraits } from "./folderClass";
+import { FileFolder } from "./folderClass";
 import type { FolderTraits, Libs } from "./types";
-import { createMockFsLib } from "./mockTypes";
 
-describe("FileFoldersManager", () => {
-  const mockLibs: Libs = {
-    path: {
-      resolve: vi.fn(),
-      basename: vi.fn(),
+type FolderTable<
+  FoldersType extends Record<PropertyKey, FolderTraits<unknown>>
+> = {
+  [Key in keyof FoldersType]: FileFolderFromTraits<FoldersType[Key]>;
+};
+
+export class FileFoldersManager<
+  FoldersType extends Record<PropertyKey, FolderTraits<any>>
+> {
+  private readonly _folders: FolderTable<FoldersType>;
+  private readonly _basePath: string;
+
+  constructor(libs: Libs, basePath: string, folderTraits: FoldersType) {
+    this._basePath = libs.path.resolve(basePath);
+    this._folders = createFolders(
+      basePath,
+      libs,
+      folderTraits
+    ) as FolderTable<FoldersType>;
+  }
+  get base() {
+    return this._basePath;
+  }
+
+  // ディレクトリ作成
+  async mkDir(): Promise<void> {
+    await Promise.all(
+      Object.values(this._folders).map((folder) => folder.mkDir())
+    );
+  }
+
+  // 子フォルダ取得
+  get children() {
+    return this._folders;
+  }
+}
+
+const createFolders = <
+  FoldersType extends Record<PropertyKey, FolderTraits<unknown>>
+>(
+  basePath: string,
+  libs: Libs,
+  folderTraits: FoldersType
+): FolderTable<FoldersType> => {
+  return Object.keys(folderTraits).reduce(
+    (acc, key: string & keyof FolderTable<FoldersType>) => {
+      acc[key] = new FileFolder(
+        libs,
+        libs.path.resolve(basePath, key),
+        folderTraits[key as keyof FoldersType]
+      );
+      return acc;
     },
-    fileSystem: createMockFsLib(),
-  };
-
-  const folderA: FolderTraits<string> = {
-    ext: ".json",
-    makeDefault: () => Buffer.from("{}"),
-    readFile: async (file) => JSON.parse(file.toString()),
-    toFileData: (data) => Buffer.from(JSON.stringify(data)),
-  };
-  const folderB: FolderTraits<string> = {
-    ext: ".txt",
-    makeDefault: () => Buffer.from("default text"),
-    readFile: async (file) => file.toString(),
-    toFileData: (data) => Buffer.from(data),
-  };
-
-  const folderTraits = {
-    folderA,
-    folderB,
-  };
-
-  const basePath = "/base/path";
-  let manager: FileFoldersManager<typeof folderTraits>;
-
-  beforeEach(() => {
-    manager = new FileFoldersManager(mockLibs, basePath, folderTraits);
-    vi.resetAllMocks();
-  });
-
-  //   it("should resolve base path", () => {
-  //     mockLibs.path.resolve.mockImplementation((path) => path);
-  //     expect(manager.base).toBe(basePath);
-  //   });
-
-  it("should initialize children folders", () => {
-    const manager = new FileFoldersManager(mockLibs, basePath, folderTraits);
-    expect(manager.children.folderA).toBeDefined();
-    expect(manager.children.folderB).toBeDefined();
-  });
-
-  it("should call mkDir on all child folders", async () => {
-    const mockMkDirA = vi
-      .spyOn(manager.children.folderA, "mkDir")
-      .mockResolvedValue();
-    const mockMkDirB = vi
-      .spyOn(manager.children.folderB, "mkDir")
-      .mockResolvedValue();
-
-    await manager.mkDir();
-
-    expect(mockMkDirA).toHaveBeenCalled();
-    expect(mockMkDirB).toHaveBeenCalled();
-  });
-});
+    {} as Record<keyof FoldersType, FileFolder<unknown>>
+  ) as FolderTable<FoldersType>;
+};
