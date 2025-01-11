@@ -37,6 +37,9 @@ export class FileFoldersManager<
   get children() {
     return this._folders;
   }
+  childFolders() {
+    return Object.values<FileFolder<unknown>>(this._folders);
+  }
 }
 
 const createFolders = <
