@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { FileFoldersManager } from "./fileFoldertManager";
 import type { FolderTraits, Libs } from "./types";
+import { createMockFsLib } from "./mockTypes";
 
 describe("FileFoldersManager", () => {
   const mockLibs: Libs = {
@@ -8,13 +9,7 @@ describe("FileFoldersManager", () => {
       resolve: vi.fn(),
       basename: vi.fn(),
     },
-    fileSystem: {
-      access: vi.fn(),
-      mkdir: vi.fn(),
-      readdir: vi.fn(),
-      readFile: vi.fn(),
-      writeFile: vi.fn(),
-    },
+    fileSystem: createMockFsLib(),
   };
 
   const folderA: FolderTraits<string> = {

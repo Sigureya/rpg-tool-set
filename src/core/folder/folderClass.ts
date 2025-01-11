@@ -78,7 +78,7 @@ export class FileFolder<T> {
     const path = this.resolvePath(childPath);
     try {
       return await this._fileSystem.readdir(path, { withFileTypes: true });
-    } catch (error) {
+    } catch {
       throw new Error(`Failed to read directory: ${path}`);
     }
   }
