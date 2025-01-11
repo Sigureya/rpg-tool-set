@@ -28,6 +28,12 @@ describe("createFolderTable", () => {
     });
   });
 
+  it("should set the correct extension for each folder", () => {
+    [folders.enemies, folders.faces, folders.pictures].forEach((folder) => {
+      expect(folder.ext).toBe(".png");
+    });
+  });
+
   it("should create instances of FileFolder", () => {
     folderNames.forEach((name) => {
       expect(folders[name]).toBeInstanceOf(FileFolder);
@@ -46,7 +52,7 @@ describe("createFolderTable with invalid folder names", () => {
   const invalidFolderNames = ["..", "/", "\\"] as const;
 
   invalidFolderNames.forEach((name) => {
-    it(`should throw an error for invalid folder names:${name}`, () => {
+    it(`should throw an error for invalid folder names:(${name})`, () => {
       expect(() => {
         createFolderTable(
           { path, fileSystem: createMockFsLib() },
