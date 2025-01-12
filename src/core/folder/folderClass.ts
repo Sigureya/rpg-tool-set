@@ -2,14 +2,15 @@ import type { Dirent } from "node:fs";
 import { extractFolders } from "./utils";
 import type { FileDataType, FolderTraits, FsLib, Libs, PathLib } from "./types";
 import { validatePath } from "./validatePath";
+import type { FileFolderInterFace } from "./types/fileFolderInterface";
 
 export type FileFolderFromTraits<T extends FolderTraits<unknown>> = FileFolder<
   Parameters<T["toFileData"]>[0]
 >;
 
-export class FileFolder<T> {
+export class FileFolder<T> implements FileFolderInterFace {
   readonly _basePath: string;
-  readonly _setting: FolderTraits<T>;
+  readonly _setting: Readonly<FolderTraits<T>>;
   private _fileSystem: FsLib;
   private _pathLib: PathLib;
 
@@ -61,6 +62,7 @@ export class FileFolder<T> {
 
   // ファイル書き込み
   async write(filename: string, data: T): Promise<void> {
+    await this.mkDir();
     const path = this.resolveFilenamePath(filename);
     const fileData: FileDataType = this._setting.toFileData(data);
     await this._fileSystem.writeFile(path, fileData);
@@ -69,7 +71,7 @@ export class FileFolder<T> {
   // デフォルトデータを元にファイル作成
   async makeFile(filename: string): Promise<void> {
     const path = this.resolveFilenamePath(filename);
-    const data: FileDataType = this._setting.makeDefault();
+    const data: FileDataType = this._setting.makeDefault(filename);
     await this._fileSystem.writeFile(path, data);
   }
 

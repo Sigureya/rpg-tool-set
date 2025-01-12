@@ -12,6 +12,7 @@ import type {
   Data_Troop,
   Data_Weapon,
 } from "@sigureya/rpgtypes";
+import type { MapFileInfo } from "./rpgMap";
 
 export interface ActorConverter<T = Data_Actor> {
   convertActor(actor: Data_Actor): T;
@@ -41,6 +42,9 @@ export interface WeaponConverter<T = Data_Weapon> {
 export interface SystemDataConveter<T = Data_System> {
   convertSystem(system: Data_System): T;
 }
+export interface MapDataConverter<T = Data_Map> {
+  convertMap(map: MapFileInfo): T;
+}
 
 export interface MainDataConverter<T>
   extends ActorConverter<T>,
@@ -54,7 +58,7 @@ export interface MainDataConverter<T>
 
 export interface EventCommandConverter<T> {
   troop(troop: Data_Troop): T;
-  mapData(mapData: Data_Map): T;
+  mapData(mapData: MapFileInfo): T;
   commonEvent(commmon: Data_CommonEvent): T;
 }
 
