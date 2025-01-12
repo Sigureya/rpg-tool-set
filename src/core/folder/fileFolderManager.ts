@@ -1,12 +1,7 @@
-import type { FileFolderFromTraits } from "./folderClass";
-import { FileFolder } from "./folderClass";
+import type { FileFolder } from "./folderClass";
 import type { FolderTraits, Libs } from "./types";
-
-type FolderTable<
-  FoldersType extends Record<PropertyKey, FolderTraits<unknown>>
-> = {
-  [Key in keyof FoldersType]: FileFolderFromTraits<FoldersType[Key]>;
-};
+import type { FolderTable } from "./utils2";
+import { createFolders } from "./utils2";
 
 export class FileFoldersManager<
   FoldersType extends Record<PropertyKey, FolderTraits<any>>
@@ -41,23 +36,3 @@ export class FileFoldersManager<
     return Object.values<FileFolder<unknown>>(this._folders);
   }
 }
-
-const createFolders = <
-  FoldersType extends Record<PropertyKey, FolderTraits<unknown>>
->(
-  basePath: string,
-  libs: Libs,
-  folderTraits: FoldersType
-): FolderTable<FoldersType> => {
-  return Object.keys(folderTraits).reduce(
-    (acc, key: string & keyof FolderTable<FoldersType>) => {
-      acc[key] = new FileFolder(
-        libs,
-        libs.path.resolve(basePath, key),
-        folderTraits[key as keyof FoldersType]
-      );
-      return acc;
-    },
-    {} as Record<keyof FoldersType, FileFolder<unknown>>
-  ) as FolderTable<FoldersType>;
-};

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { FileFoldersManager } from "./fileFolderManager";
+import type { FileFoldersManager } from "./fileFolderManager";
 import type { FolderTraits, Libs } from "./types";
 import { createMockFsLib } from "./mockTypes";
+import { createFileFolderManager } from "./utils2";
 
 describe("FileFoldersManager", () => {
   const mockLibs: Libs = {
@@ -34,7 +35,7 @@ describe("FileFoldersManager", () => {
   let manager: FileFoldersManager<typeof folderTraits>;
 
   beforeEach(() => {
-    manager = new FileFoldersManager(mockLibs, basePath, folderTraits);
+    manager = createFileFolderManager(mockLibs, basePath, folderTraits);
     vi.resetAllMocks();
   });
 
@@ -44,7 +45,7 @@ describe("FileFoldersManager", () => {
   //   });
 
   it("should initialize children folders", () => {
-    const manager = new FileFoldersManager(mockLibs, basePath, folderTraits);
+    const manager = createFileFolderManager(mockLibs, basePath, folderTraits);
     expect(manager.children.folderA).toBeDefined();
     expect(manager.children.folderB).toBeDefined();
   });
