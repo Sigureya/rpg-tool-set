@@ -10,7 +10,7 @@ export type FileFolderFromTraits<T extends FolderTraits<unknown>> = FileFolder<
 
 export class FileFolder<T> implements FileFolderInterFace {
   readonly _basePath: string;
-  readonly _setting: FolderTraits<T>;
+  readonly _setting: Readonly<FolderTraits<T>>;
   private _fileSystem: FsLib;
   private _pathLib: PathLib;
 
@@ -71,7 +71,7 @@ export class FileFolder<T> implements FileFolderInterFace {
   // デフォルトデータを元にファイル作成
   async makeFile(filename: string): Promise<void> {
     const path = this.resolveFilenamePath(filename);
-    const data: FileDataType = this._setting.makeDefault();
+    const data: FileDataType = this._setting.makeDefault(filename);
     await this._fileSystem.writeFile(path, data);
   }
 
