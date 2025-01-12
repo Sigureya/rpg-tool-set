@@ -1,8 +1,8 @@
 import type { DataTypesTable } from "@sigureya/rpgtypes";
 import type {
   EventCommandConverter,
-  MainDataConverter,
   MapDataConverter,
+  MapDataFolderInterface,
 } from "./rpgData";
 import type { RpgDataFolder } from "./rpgDataFolder";
 
@@ -27,10 +27,12 @@ export const convertEventData = async <T>(
   };
 };
 
-const convertMapData = async <T>(
-  folder: RpgDataFolder,
+export const convertMapData = async <T>(
+  folder: MapDataFolderInterface,
   converter: MapDataConverter<T>
 ) => {
-  const infos = await folder.readJSON("MapInfos");
-  infos.map((info) => {});
+  const infos = await folder.readAllMapDataMZ();
+  // ここでPromise.all()してないのは意図的
+  // 例えば複数のマップファイルを並行して変換するのなら、同期しない方が速い
+  return infos.map(async (promise) => converter.convertMap(await promise));
 };
