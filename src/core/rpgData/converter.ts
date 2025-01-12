@@ -12,7 +12,7 @@ import type {
   Data_Troop,
   Data_Weapon,
 } from "@sigureya/rpgtypes";
-import type { MapFileInfo } from "./rpgMap";
+import type { MapFileData } from "./rpgMap";
 
 export interface ActorConverter<T = Data_Actor> {
   convertActor(actor: Data_Actor): T;
@@ -21,7 +21,7 @@ export interface ArmorConverter<T = Data_Armor> {
   convertArmor(armor: Data_Armor): T;
 }
 export interface ClassConverter<T = Data_Class> {
-  convertClase_(clase_: Data_Class): T;
+  convertClase(clase_: Data_Class): T;
 }
 export interface EnemyConverter<T = Data_Enemy> {
   convertEnemy(enemy: Data_Enemy): T;
@@ -43,7 +43,14 @@ export interface SystemDataConveter<T = Data_System> {
   convertSystem(system: Data_System): T;
 }
 export interface MapDataConverter<T = Data_Map> {
-  convertMap(map: MapFileInfo): T;
+  convertMap(map: MapFileData): T;
+}
+export interface TroopConverter<T = Data_Troop> {
+  convertTroop(map: Data_Troop): T;
+}
+
+export interface CommonEventConverter<T = Data_CommonEvent> {
+  convertCommonEvent(event: Data_CommonEvent): T;
 }
 
 export interface MainDataConverter<T>
@@ -56,11 +63,10 @@ export interface MainDataConverter<T>
     StateConverter<T>,
     WeaponConverter<T> {}
 
-export interface EventCommandConverter<T> {
-  troop(troop: Data_Troop): T;
-  mapData(mapData: MapFileInfo): T;
-  commonEvent(commmon: Data_CommonEvent): T;
-}
+export interface EventCommandConverter<T>
+  extends MapDataConverter<T>,
+    TroopConverter<T>,
+    CommonEventConverter<T> {}
 
 export interface TextDataConveter<T>
   extends EventCommandConverter<T>,

@@ -1,12 +1,16 @@
 import type { Data_Map, DataTypesTable } from "@sigureya/rpgtypes";
 import type { Libs } from "./folder";
 import { FileFolder } from "./folder";
-import type { MapFileData, MapDataFolderInterface } from "./rpgData";
+import type {
+  MapFileData,
+  MapDataFolderInterface,
+  RpgMainDataFolderInterface,
+} from "./rpgData";
 import { createMapFileName, validateMapData } from "./rpgData";
 
 export class RpgDataFolder
   extends FileFolder<string>
-  implements MapDataFolderInterface
+  implements MapDataFolderInterface, RpgMainDataFolderInterface
 {
   constructor(libs: Libs, basePath: string) {
     super(libs, basePath, {
