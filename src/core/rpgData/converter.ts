@@ -63,10 +63,15 @@ export interface MainDataConverter<T>
     StateConverter<T>,
     WeaponConverter<T> {}
 
-export interface EventCommandConverter
-  extends MapDataConverter,
-    TroopConverter,
-    CommonEventConverter {}
+export interface ImageDataConverterMZ<T>
+  extends EnemyConverter<T>,
+    ActorConverter<T>,
+    CommonEventConverter<T> {}
+
+export interface EventCommandConverter<T>
+  extends MapDataConverter<T>,
+    TroopConverter<T>,
+    CommonEventConverter<T> {}
 
 // export interface TextDataConveter<T>
 //   extends EventCommandConverter<T>,

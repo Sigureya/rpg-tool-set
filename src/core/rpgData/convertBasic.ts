@@ -15,8 +15,8 @@ import type {
   RpgMainDataFolderInterface,
   RpgSystemDataFolder,
   TroopConverter,
-} from "./rpgData";
-import type { RpgDataFolder } from "./rpgDataFolder";
+} from ".";
+
 export const convertSystem = async <T>(
   folder: RpgSystemDataFolder,
   converter: SystemDataConveter<T>
@@ -50,7 +50,7 @@ export const convertArmor = async <T>(
   );
 };
 export const convertCommonEvent = async <T>(
-  folder: RpgDataFolder,
+  folder: RpgMainDataFolderInterface,
   converter: CommonEventConverter<T>
 ) => {
   return execConvert(folder, "CommonEvents", (data, filename) =>
@@ -112,61 +112,19 @@ export const convertItem = async <T>(
   );
 };
 
+export const convertTroop = async <T>(
+  folder: RpgMainDataFolderInterface,
+  converter: TroopConverter<T>
+) => {
+  return execConvert(folder, "Troops", (data, filename) =>
+    converter.convertTroop(data, filename)
+  );
+};
+
 export const convertMapData = async <T>(
   folder: MapDataFolderInterface,
   converter: MapDataConverter<T>
-) => {
+): Promise<Promise<T>[]> => {
   const infos = await folder.readAllMapDataMZ();
-  // ここでPromise.all()してないのは意図的
-  // 例えば複数のマップファイルを並行して変換するのなら、同期しない方が速い
   return infos.map(async (promise) => converter.convertMap(await promise));
-};
-
-export const convertMainData = async <
-  Actor,
-  Armor,
-  Class,
-  Enemy,
-  Item,
-  Skill,
-  State,
-  Weapon
->(
-  folder: RpgMainDataFolderInterface,
-  converter: ActorConverter<Actor> &
-    ArmorConverter<Armor> &
-    ClassConverter<Class> &
-    EnemyConverter<Enemy> &
-    ItemConverter<Item> &
-    SkillConverter<Skill> &
-    StateConverter<State> &
-    WeaponConverter<Weapon>
-) => {
-  return {
-    actors: await convertActor(folder, converter),
-    armors: await convertArmor(folder, converter),
-    classes: await convertClass(folder, converter),
-    enemies: await convertEnemy(folder, converter),
-    items: await convertItem(folder, converter),
-    skills: await convertSkill(folder, converter),
-    states: await convertState(folder, converter),
-    weapons: await convertWeapon(folder, converter),
-  };
-};
-
-export const convertEventData = async <Troop, Common, Map>(
-  folder: RpgMainDataFolderInterface & MapDataFolderInterface,
-  converter: CommonEventConverter<Common> &
-    TroopConverter<Troop> &
-    MapDataConverter<Map>
-): Promise<{ commonEvents: Common[]; troops: Troop[]; maps: Map[] }> => {
-  return {
-    maps: (await Promise.all(await convertMapData(folder, converter))) as Map[],
-    commonEvents: await execConvert(folder, "CommonEvents", (data, fiilename) =>
-      converter.convertCommonEvent(data, fiilename)
-    ),
-    troops: await execConvert(folder, "Troops", (data, fiilename) =>
-      converter.convertTroop(data, fiilename)
-    ),
-  };
 };
