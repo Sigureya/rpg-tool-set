@@ -1,12 +1,13 @@
 // TODO:ここから先の複合バージョンは後で別ファイルに移動する。
 // その場合、このファイルと移動先の名前を考える必要がある
 
-import { convertMapData, execConvert } from "./convertBasic";
+import { execConvert } from "./convertBasic";
 import type {
   CommonEventConverter,
   TroopConverter,
   MapDataConverter,
 } from "./converter";
+import { convertMapData } from "./convertMapData";
 import type {
   RpgMainDataFolderInterface,
   MapDataFolderInterface,
@@ -21,8 +22,8 @@ export const convertEventData = async <Troop, Common, Map>(
 ): Promise<{ commonEvents: Common[]; troops: Troop[]; maps: Map[] }> => {
   return {
     maps: (await Promise.all(await convertMapData(folder, converter))) as Map[],
-    commonEvents: await execConvert(folder, "CommonEvents", (data, fiilename) =>
-      converter.convertCommonEvent(data, fiilename)
+    commonEvents: await execConvert(folder, "CommonEvents", (data, filename) =>
+      converter.convertCommonEvent(data, filename)
     ),
     troops: await execConvert(folder, "Troops", (data, fiilename) =>
       converter.convertTroop(data, fiilename)

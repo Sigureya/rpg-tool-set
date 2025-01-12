@@ -3,8 +3,6 @@ import type {
   ActorConverter,
   ArmorConverter,
   EnemyConverter,
-  MapDataConverter,
-  MapDataFolderInterface,
   ClassConverter,
   CommonEventConverter,
   ItemConverter,
@@ -12,10 +10,15 @@ import type {
   StateConverter,
   WeaponConverter,
   SystemDataConveter,
-  RpgMainDataFolderInterface,
-  RpgSystemDataFolder,
   TroopConverter,
-} from ".";
+} from "./converter";
+import type {
+  RpgSystemDataFolder,
+  RpgMainDataFolderInterface,
+} from "./interface";
+
+// TODO:変換処理でエラーがあった場合の対応
+// 戻り値を調整して、T=>T2ではなくT[]=>T2[]にして、エラーがあったオブジェクトを全て列挙できるシステムにする
 
 export const convertSystem = async <T>(
   folder: RpgSystemDataFolder,
@@ -27,10 +30,10 @@ export const convertSystem = async <T>(
 export const execConvert = async <T, Key extends keyof DataTypesTable>(
   folder: RpgMainDataFolderInterface,
   fiilename: Key,
-  converter: (data: DataTypesTable[Key], filename: string) => T
+  converter: (data: Array<DataTypesTable[Key]>, filename: string) => T[]
 ) => {
   const list = await folder.readJSON(fiilename);
-  return list.map((data) => converter(data, fiilename));
+  return converter(list, fiilename);
 };
 
 export const convertActor = async <T>(
@@ -119,12 +122,4 @@ export const convertTroop = async <T>(
   return execConvert(folder, "Troops", (data, filename) =>
     converter.convertTroop(data, filename)
   );
-};
-
-export const convertMapData = async <T>(
-  folder: MapDataFolderInterface,
-  converter: MapDataConverter<T>
-): Promise<Promise<T>[]> => {
-  const infos = await folder.readAllMapDataMZ();
-  return infos.map(async (promise) => converter.convertMap(await promise));
 };
