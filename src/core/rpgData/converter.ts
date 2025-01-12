@@ -15,42 +15,42 @@ import type {
 import type { MapFileData } from "./rpgMap";
 
 export interface ActorConverter<T = Data_Actor> {
-  convertActor(actor: Data_Actor): T;
+  convertActor(actor: Data_Actor, filename: string): T;
 }
 export interface ArmorConverter<T = Data_Armor> {
-  convertArmor(armor: Data_Armor): T;
+  convertArmor(armor: Data_Armor, filename: string): T;
 }
 export interface ClassConverter<T = Data_Class> {
-  convertClase(clase_: Data_Class): T;
+  convertClase(clase_: Data_Class, filename: string): T;
 }
 export interface EnemyConverter<T = Data_Enemy> {
-  convertEnemy(enemy: Data_Enemy): T;
+  convertEnemy(enemy: Data_Enemy, filename: string): T;
 }
 export interface ItemConverter<T = Data_Item> {
-  convertItem(item: Data_Item): T;
+  convertItem(item: Data_Item, filename: string): T;
 }
 export interface SkillConverter<T = Data_Skill> {
-  convertSkill(skill: Data_Skill): T;
+  convertSkill(skill: Data_Skill, filename: string): T;
 }
 export interface StateConverter<T = Data_State> {
-  convertState(state: Data_State): T;
+  convertState(state: Data_State, filename: string): T;
 }
 export interface WeaponConverter<T = Data_Weapon> {
-  convertWeapon(weapon: Data_Weapon): T;
+  convertWeapon(weapon: Data_Weapon, filename: string): T;
 }
 
 export interface SystemDataConveter<T = Data_System> {
-  convertSystem(system: Data_System): T;
+  convertSystem(system: Data_System, filename: string): T;
 }
 export interface MapDataConverter<T = Data_Map> {
   convertMap(map: MapFileData): T;
 }
 export interface TroopConverter<T = Data_Troop> {
-  convertTroop(map: Data_Troop): T;
+  convertTroop(map: Data_Troop, filename: string): T;
 }
 
 export interface CommonEventConverter<T = Data_CommonEvent> {
-  convertCommonEvent(event: Data_CommonEvent): T;
+  convertCommonEvent(event: Data_CommonEvent, filename: string): T;
 }
 
 export interface MainDataConverter<T>
@@ -63,12 +63,12 @@ export interface MainDataConverter<T>
     StateConverter<T>,
     WeaponConverter<T> {}
 
-export interface EventCommandConverter<T>
-  extends MapDataConverter<T>,
-    TroopConverter<T>,
-    CommonEventConverter<T> {}
+export interface EventCommandConverter
+  extends MapDataConverter,
+    TroopConverter,
+    CommonEventConverter {}
 
-export interface TextDataConveter<T>
-  extends EventCommandConverter<T>,
-    MainDataConverter<T>,
-    SystemDataConveter<T> {}
+// export interface TextDataConveter<T>
+//   extends EventCommandConverter<T>,
+//     MainDataConverter,
+//     SystemDataConveter<T> {}
