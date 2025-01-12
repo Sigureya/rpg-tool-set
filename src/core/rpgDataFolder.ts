@@ -1,10 +1,13 @@
+import type { Data_Map, DataTypesTable } from "@sigureya/rpgtypes";
 import type { Libs } from "./folder";
-import { FileFolder, type FileFolderInterFace } from "./folder";
-import type { DataTypesTable, IdentifiedItems } from "@sigureya/rpgtypes";
-import { filterValidData } from "./utilst";
-import type { MapFileInfo } from "./rpgData/rpgMap";
+import { FileFolder } from "./folder";
+import type { MapFileData, MapDataFolderInterface } from "./rpgData";
+import { createMapFileName, validateMapData } from "./rpgData";
 
-export class RpgDataFolder extends FileFolder<string> {
+export class RpgDataFolder
+  extends FileFolder<string>
+  implements MapDataFolderInterface
+{
   constructor(libs: Libs, basePath: string) {
     super(libs, basePath, {
       ext: ".json",
@@ -56,7 +59,30 @@ export class RpgDataFolder extends FileFolder<string> {
       "MapInfos",
     ] as const;
   }
-  readMapData(mapId: number): Promise<MapFileInfo> {
-    throw new Error("Method not implemented.");
+
+  async readAllMapDataMZ(): Promise<Promise<MapFileData>[]> {
+    const infoList = await this.readJSON("MapInfos");
+    return infoList.map<Promise<MapFileData>>(async (info) => {
+      const mapFileName = createMapFileName(info.id);
+      const data = await this.readMapData(mapFileName);
+      return {
+        data,
+        id: info.id,
+        editingName: info.name,
+        filename: mapFileName,
+      };
+    });
+  }
+  readMapDataFromId(id: number): Promise<Data_Map> {
+    return this.readMapData(createMapFileName(id));
+  }
+
+  async readMapData(filename: string): Promise<Data_Map> {
+    const dataText = await this.read(filename);
+    const data: Data_Map = JSON.parse(dataText);
+    if (!validateMapData(data)) {
+      throw new Error("Invalid map data");
+    }
+    return data;
   }
 }
