@@ -1,16 +1,20 @@
-import type { Data_Map, DataTypesTable } from "@sigureya/rpgtypes";
+import type { Data_Map, Data_System, DataTypesTable } from "@sigureya/rpgtypes";
 import type { Libs } from "./folder";
 import { FileFolder } from "./folder";
 import type {
   MapFileData,
   MapDataFolderInterface,
   RpgMainDataFolderInterface,
+  RpgSystemDataFolder,
 } from "./rpgData";
 import { createMapFileName, validateMapData } from "./rpgData";
 
 export class RpgDataFolder
   extends FileFolder<string>
-  implements MapDataFolderInterface, RpgMainDataFolderInterface
+  implements
+    MapDataFolderInterface,
+    RpgMainDataFolderInterface,
+    RpgSystemDataFolder
 {
   constructor(libs: Libs, basePath: string) {
     super(libs, basePath, {
@@ -37,12 +41,17 @@ export class RpgDataFolder
   ): Promise<DataTypesTable[FileName][]> {
     const text = await this.read(filename);
 
-    return [];
+    return JSON.parse(text);
   }
   writeJSON<FileName extends keyof DataTypesTable>(
     data: DataTypesTable[FileName],
     filename: FileName
   ) {}
+  async readSystemData(): Promise<Data_System> {
+    const text = await this.read("System");
+    const system = JSON.parse(text);
+    return system;
+  }
 
   safeFilename(filename: string): keyof DataTypesTable | undefined {
     return this.filenames().find((name) => name === filename);
