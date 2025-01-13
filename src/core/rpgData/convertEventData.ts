@@ -1,6 +1,3 @@
-// TODO:ここから先の複合バージョンは後で別ファイルに移動する。
-// その場合、このファイルと移動先の名前を考える必要がある
-
 import { execConvert } from "./convertBasic";
 import type {
   CommonEventConverter,
