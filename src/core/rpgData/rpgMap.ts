@@ -8,19 +8,13 @@ export interface MapFileInfo {
   id: number;
 }
 
-export interface MapFilePromise {
-  data: Promise<Data_Map>;
+export interface MapFileData<T = Data_Map> extends MapFileInfo {
+  data: T;
   filename: MapFileName;
   editingName: string;
   id: number;
 }
-
-export interface MapFileData extends MapFileInfo {
-  data: Data_Map;
-  filename: MapFileName;
-  editingName: string;
-  id: number;
-}
+export type MapFilePromise = MapFileData<Promise<Data_Map>>;
 
 export const resolveMapFile = async (
   map: MapFilePromise
