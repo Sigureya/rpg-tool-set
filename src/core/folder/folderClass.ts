@@ -123,4 +123,21 @@ export class FileFolder<T> implements FileFolderInterFace {
     });
     return list.filter((dirent) => dirent.isDirectory());
   }
+
+  arcExtentionMatch(dirent: Dirent): boolean {
+    // 将来的に複数の拡張子に対応できるよう、準備しておく
+    return dirent.name.endsWith(this.ext);
+  }
+  /**
+   * @description あるファイルがフォルダ内に存在するか
+   * @param dirent
+   * @returns
+   */
+  areIncludesFile(dirent: Dirent): boolean {
+    return (
+      dirent.isFile() &&
+      this.arcExtentionMatch(dirent) &&
+      dirent.parentPath.startsWith(this._basePath)
+    );
+  }
 }
