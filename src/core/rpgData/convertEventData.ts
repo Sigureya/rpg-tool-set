@@ -1,4 +1,4 @@
-import { execConvert } from "./convertBasic";
+import { convertDataFromFolder } from "./convertBasic";
 import type {
   CommonEventConverter,
   TroopConverter,
@@ -16,13 +16,15 @@ export const convertEventData = async <Troop, Common, Map>(
   converter: CommonEventConverter<Common> &
     TroopConverter<Troop> &
     MapDataConverter<Map>
-): Promise<{ commonEvents: Common[]; troops: Troop[]; maps: Map[] }> => {
+) => {
   return {
     maps: (await Promise.all(await convertMapData(folder, converter))) as Map[],
-    commonEvents: await execConvert(folder, "CommonEvents", (data, filename) =>
-      converter.convertCommonEvent(data, filename)
+    commonEvents: await convertDataFromFolder(
+      folder,
+      "CommonEvents",
+      (data, filename) => converter.convertCommonEvent(data, filename)
     ),
-    troops: await execConvert(folder, "Troops", (data, fiilename) =>
+    troops: await convertDataFromFolder(folder, "Troops", (data, fiilename) =>
       converter.convertTroop(data, fiilename)
     ),
   };
