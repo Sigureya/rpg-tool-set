@@ -16,17 +16,7 @@ import type {
   RpgSystemDataFolder,
   RpgMainDataFolderInterface,
 } from "./interface";
-
-export interface ConvertResult<ResultType, SrcType> {
-  result: ResultType[];
-  fileName: string;
-  errors: ConvertError<SrcType>[];
-}
-interface ConvertError<T> {
-  data: T;
-  index: number;
-  error: unknown;
-}
+import type { ConvertResult } from "./convertResult";
 
 type ConverterFunc<Data, Result> = (data: Data, fileName: string) => Result;
 
