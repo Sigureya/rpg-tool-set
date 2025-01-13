@@ -16,47 +16,84 @@ import type {
   RpgSystemDataFolder,
   RpgMainDataFolderInterface,
 } from "./interface";
+import type { ConvertResult } from "./convertResult";
 
-// TODO:変換処理でエラーがあった場合の対応
-// 戻り値を調整して、T=>T2ではなくT[]=>T2[]にして、エラーがあったオブジェクトを全て列挙できるシステムにする
+type ConverterFunc<Data, Result> = (data: Data, fileName: string) => Result;
 
-export const convertSystem = async <T>(
-  folder: RpgSystemDataFolder,
-  converter: SystemDataConveter<T>
-) => {
-  return converter.convertSystem(await folder.readSystemData(), "System");
+/**
+ * @description 変換するデータ型を限定したバージョン。
+ * @param list
+ * @param filename
+ * @param converterFunc
+ * @returns
+ */
+export const convertRpgData = <T, Key extends keyof DataTypesTable>(
+  list: ReadonlyArray<DataTypesTable[Key]>,
+  filename: Key,
+  converterFunc: ConverterFunc<DataTypesTable[Key], T>
+): ConvertResult<T, DataTypesTable[Key]> => {
+  return convertData(list, filename, converterFunc);
 };
 
-export const execConvert = async <T, Key extends keyof DataTypesTable>(
+export const convertData = <Result, Data>(
+  list: ReadonlyArray<Data>,
+  filename: string,
+  converterFunc: ConverterFunc<Data, Result>
+): ConvertResult<Result, Data> => {
+  const result: ConvertResult<Result, Data> = {
+    result: [],
+    errors: [],
+    fileName: filename,
+  };
+  list.forEach((data, index) => {
+    try {
+      result.result.push(converterFunc(data, filename));
+    } catch (error) {
+      result.errors.push({ data, index, error });
+    }
+  });
+  return result;
+};
+/**
+ * @description フォルダからデータ読み込み、変換処理を呼び出す。ファイル読み込みが失敗したら例外を投げる。
+ * @param folder
+ * @param fileName
+ * @param converterFunc
+ * @returns
+ */
+export const convertDataFromFolder = async <
+  T,
+  Key extends keyof DataTypesTable
+>(
   folder: RpgMainDataFolderInterface,
-  fiilename: Key,
-  converter: (data: Array<DataTypesTable[Key]>, filename: string) => T[]
-) => {
-  const list = await folder.readJSON(fiilename);
-  return converter(list, fiilename);
+  fileName: Key,
+  converterFunc: ConverterFunc<DataTypesTable[Key], T>
+): Promise<ConvertResult<T, DataTypesTable[Key]>> => {
+  const list = await folder.readJSON(fileName);
+  return convertRpgData(list, fileName, converterFunc);
 };
 
 export const convertActor = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: ActorConverter<T>
 ) => {
-  return execConvert(folder, "Actors", (data, fiilename) =>
-    converter.convertActor(data, fiilename)
+  return convertDataFromFolder(folder, "Actors", (data, filename) =>
+    converter.convertActor(data, filename)
   );
 };
 export const convertArmor = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: ArmorConverter<T>
 ) => {
-  return execConvert(folder, "Armors", (data, fiilename) =>
-    converter.convertArmor(data, fiilename)
+  return convertDataFromFolder(folder, "Armors", (data, filename) =>
+    converter.convertArmor(data, filename)
   );
 };
 export const convertCommonEvent = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: CommonEventConverter<T>
 ) => {
-  return execConvert(folder, "CommonEvents", (data, filename) =>
+  return convertDataFromFolder(folder, "CommonEvents", (data, filename) =>
     converter.convertCommonEvent(data, filename)
   );
 };
@@ -65,8 +102,8 @@ export const convertWeapon = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: WeaponConverter<T>
 ) => {
-  return execConvert(folder, "Weapons", (data, fiilename) =>
-    converter.convertWeapon(data, fiilename)
+  return convertDataFromFolder(folder, "Weapons", (data, filename) =>
+    converter.convertWeapon(data, filename)
   );
 };
 
@@ -74,8 +111,8 @@ export const convertClass = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: ClassConverter<T>
 ) => {
-  return execConvert(folder, "Classes", (data, fiilename) =>
-    converter.convertClase(data, fiilename)
+  return convertDataFromFolder(folder, "Classes", (data, filename) =>
+    converter.convertClass(data, filename)
   );
 };
 
@@ -83,7 +120,7 @@ export const convertState = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: StateConverter<T>
 ) => {
-  return execConvert(folder, "States", (data, filename) =>
+  return convertDataFromFolder(folder, "States", (data, filename) =>
     converter.convertState(data, filename)
   );
 };
@@ -92,7 +129,7 @@ export const convertSkill = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: SkillConverter<T>
 ) => {
-  return execConvert(folder, "Skills", (data, filename) =>
+  return convertDataFromFolder(folder, "Skills", (data, filename) =>
     converter.convertSkill(data, filename)
   );
 };
@@ -101,7 +138,7 @@ export const convertEnemy = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: EnemyConverter<T>
 ) => {
-  return execConvert(folder, "Enemies", (data, filename) =>
+  return convertDataFromFolder(folder, "Enemies", (data, filename) =>
     converter.convertEnemy(data, filename)
   );
 };
@@ -110,7 +147,7 @@ export const convertItem = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: ItemConverter<T>
 ) => {
-  return execConvert(folder, "Items", (data, filename) =>
+  return convertDataFromFolder(folder, "Items", (data, filename) =>
     converter.convertItem(data, filename)
   );
 };
@@ -119,7 +156,13 @@ export const convertTroop = async <T>(
   folder: RpgMainDataFolderInterface,
   converter: TroopConverter<T>
 ) => {
-  return execConvert(folder, "Troops", (data, filename) =>
+  return convertDataFromFolder(folder, "Troops", (data, filename) =>
     converter.convertTroop(data, filename)
   );
+};
+export const convertSystem = async <T>(
+  folder: RpgSystemDataFolder,
+  converter: SystemDataConveter<T>
+): Promise<T> => {
+  return converter.convertSystem(await folder.readSystemData(), "System");
 };
