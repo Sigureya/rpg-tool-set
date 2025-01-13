@@ -65,6 +65,7 @@ export interface MainDataConverter<T>
 
 export interface ImageDataConverterMZ<T>
   extends EnemyConverter<T>,
+    MapDataConverter<T>,
     ActorConverter<T>,
     CommonEventConverter<T> {}
 
